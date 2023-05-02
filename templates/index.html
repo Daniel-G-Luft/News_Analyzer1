@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>News Analyzer</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
+    <style>
+        /* Add custom CSS styles here */
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1, h2 {
+            color: #444;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 1em;
+        }
+
+        .info-row {
+             margin-bottom: 0.5em;
+        }
+
+        .summary-container,
+        .chat-container {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 1em;
+            margin-bottom: 1em;
+            background: #f9f9f9;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-container {
+            height: 200px;
+            overflow-y: auto;
+        }
+
+        label {
+            display: block;
+            margin-bottom: .5em;
+        }
+
+        input[type=text] {
+            width: 100%;
+            padding: .5em;
+            margin-bottom: 1em;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        button {
+            background: #3498db;
+            color: #fff;
+            border: none;
+            padding: .7em 1.5em;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        p {
+            margin-bottom: .8em;
+        }
+
+        /* Add the loading animation CSS here */
+        @keyframes loading-dots {
+            0%,
+            80%,
+            100% {
+                opacity: 0;
+            }
+            40% {
+                opacity: 1;
+            }
+        }
+
+        .loading p {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .loading .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #3498db;
+            animation: loading-dots 1.4s infinite;
+        }
+
+        .loading .dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        button#clear_button {
+            background: #aaa;
+        }
+
+        button#clear_button:hover {
+            background: #888;
+        }
+
+        .loading .lds-ellipsis {
+            display: inline-block;
+            position: relative;
+            width: 64px;
+            height: 64px;
+        }
+
+        .loading .lds-ellipsis div {
+            position: absolute;
+            top: 27px;
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: #3498db;
+            animation-timing-function: cubic-bezier(0, 1, 1, 0);
+        }
+
+        .loading .lds-ellipsis div:nth-child(1) {
+            left: 6px;
+            animation: lds-ellipsis1 0.6s infinite;
+        }
+
+        .loading .lds-ellipsis div:nth-child(2) {
+            left: 6px;
+            animation: lds-ellipsis2 0.6s infinite;
+        }
+
+        .loading .lds-ellipsis div:nth-child(3) {
+            left: 26px;
+            animation: lds-ellipsis2 0.6s infinite;
+        }
+
+        .loading .lds-ellipsis div:nth-child(4) {
+            left: 45px;
+            animation: lds-ellipsis3 0.6s infinite;
+        }
+
+        @keyframes lds-ellipsis1 {
+            0% {
+                transform: scale(0);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes lds-ellipsis3 {
+            0% {
+                transform: scale(1);
+            }
+            100% {
+                transform: scale(0);
+            }
+        }
+
+        @keyframes lds-ellipsis2 {
+            0% {
+                transform: translate(0, 0);
+            }
+            100% {
+                transform: translate(19px, 0);
+            }
+        }
+
+        input[type=text] {
+            border-color: #000000;
+        }
+
+        .summary-container,
+        .chat-container {
+            border-color: #000000;
+        }
+
+        button#ask_button {
+            margin-bottom: 1em;
+        }
+
+        hr.dashed {
+            border-top: 1px dashed #000;
+            margin-top: 1em;
+            margin-bottom: 1em;
+        }
+
+        label.bold {
+            font-weight: bold;
+        }
+
+        .logo {
+            height: 3em;
+            margin-right: 0.5em;
+            vertical-align: bottom;
+        }
+
+        .title-text {
+            display: inline;
+        }
+
+        h1 {
+            margin-bottom: 0em;
+        }
+
+    </style>
+
+</head>
+<body>
+
+<div class="container">
+    <h1>
+        News Analyzer
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
+    </h1>
+    <hr class="dashed">
+
+    <form id="url_form">
+        <label for="article_url" class="bold">URL:</label>
+        <input type="text" id="article_url" name="article_url">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button id="analyze_button" type="button">Fetch and Analyze Article</button>
+        <div id="loading" class="loading" style="display:none;">
+            <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+        </div>
+    </form>
+
+    <h2>Analysis and Q&A:</h2>
+    <div id="article_info"></div>
+    <div class="summary-container" id="summary"></div>
+    <hr class="dashed">
+    <label for="question" class="bold">Ask a follow-up question:</label>
+    <input type="text" id="question" name="question">
+    <button id="ask_button">Ask</button>
+
+    <div class="chat-container" id="chat"></div>
+    <hr class="dashed">
+    <button id="clear_button" type="button">Clear</button>
+</div>
+
+<script>
+    const analyzeButton = document.getElementById("analyze_button");
+    const askButton = document.getElementById("ask_button");
+    const articleUrlInput = document.getElementById("article_url");
+    const questionInput = document.getElementById("question");
+    const articleInfo = document.getElementById("article_info");
+    const summary = document.getElementById("summary");
+    const chat = document.getElementById("chat");
+    const urlForm = document.getElementById("url_form");
+
+    analyzeButton.addEventListener("click", async () => {
+        const articleUrl = articleUrlInput.value;
+        if (articleUrl) {
+            try {
+                // Show the loading message and hide the analyze button
+                document.getElementById("loading").style.display = "block";
+                analyzeButton.style.display = "none";
+
+                const csrf_token = document.getElementsByName("csrf_token")[0].value;
+                const formData = new FormData(urlForm);
+                formData.append("csrf_token", csrf_token);
+
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+
+                // Hide the loading message and show the analyze button after receiving the response
+                document.getElementById("loading").style.display = "none";
+                analyzeButton.style.display = "block";
+
+                if (result.error) {
+                    alert(result.error);
+                } else {
+
+                    articleInfo.innerHTML = `
+                        <div class="info-row"><strong>Title:</strong> ${result.title}</div>
+                        <div class="info-row"><strong>Source:</strong> ${result.source}</div>
+                        <div class="info-row"><strong>Date:</strong> ${formatDate(result.date)}</div>
+                        <div class="info-row"><strong>Author(s):</strong> ${result.author}</div>
+                    `;
+
+                    summary.textContent = result.analysis;
+                }
+            } catch (e) {
+                // Hide the loading message and show the analyze button in case of an error
+                document.getElementById("loading").style.display = "none";
+                analyzeButton.style.display = "block";
+
+                alert("An error occurred while fetching or analyzing the article.");
+            }
+        } else {
+            alert("Please enter a URL.");
+        }
+    });
+
+    askButton.addEventListener("click", async () => {
+    const question = questionInput.value;
+    const doc = summary.textContent;
+    if (question && doc) {
+        try {
+            chat.innerHTML += `<p><strong>Question:</strong> ${question}</p>`;
+            chat.innerHTML += `
+                <p><strong>Answer:</strong>
+                    <span id="qa_loading" class="loading" style="display:inline;">
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                    </span>
+                </p>`;
+            chat.scrollTop = chat.scrollHeight;
+
+            const formData = new FormData();
+            formData.append("question", question);
+            formData.append("doc_text", doc);
+
+            const response = await fetch('/ask_question', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+
+            if (result.error) {
+                alert(result.error);
+            } else {
+                chat.removeChild(chat.lastChild); // Remove the temporary answer with loading animation
+                chat.innerHTML += `<p><strong>Answer:</strong> ${result.answer}</p>`; // Add the actual answer
+                chat.scrollTop = chat.scrollHeight;
+            }
+        } catch (e) {
+            alert("An error occurred while asking the question.");
+        }
+    } else {
+        alert("Please enter a question.");
+    }
+
+    questionInput.value = ''; // Clear the input box after asking the question
+});
+
+
+    const clearButton = document.getElementById("clear_button");
+
+    clearButton.addEventListener("click", () => {
+        articleUrlInput.value = '';
+        questionInput.value = '';
+        articleInfo.textContent = '';
+        summary.textContent = '';
+        chat.innerHTML = '';
+    });
+
+    function formatDate(dateString) {
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        const date = new Date(dateString);
+        return new Intl.DateTimeFormat('en-US', options).format(date);
+    }
+
+</script>
+
+</body>
+</html>

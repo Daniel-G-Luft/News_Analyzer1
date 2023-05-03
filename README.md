@@ -21,8 +21,7 @@ This web application allows users to analyze articles by providing a concise sum
 
     pip install -r requirements.txt
 
-3. Replace the placeholder API key in 'main.py' with your own OpenAI API key:
-    openai_api_key = 'your_openai_api_key'
+3. You will need to get an OpenAI API Key:
 
     To get an OpenAI API Key please go to the OpenAI website: https://openai.com/blog/openai-api
 
